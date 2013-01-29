@@ -14,7 +14,7 @@ object CacheReadTest {
     
     val cache = new WriteThroughCache(decoder1, None)
     
-    val testInputs = testData.getLines.take(10) map MemOp.deserializeFromString
+    val testInputs = testData.getLines map MemOp.deserializeFromString
     
     testInputs map { op => cache.read(op.memoryAddress) } foreach println
     
