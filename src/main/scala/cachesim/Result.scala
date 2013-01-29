@@ -1,15 +1,14 @@
 package cachesim
 
+import java.util.BitSet
 
-
-sealed abstract class Result {
-  def time: Long
-  def next: Option[Result]
-  def block: Block
+class Result(
+  val time: Long,
+  val block: Block,
+  val nextOpt: Option[Result]) {
+  
+  def hit = nextOpt.isEmpty
+  
+  def this(time: Long, block: Block, next: Result) = this(time, block, Some(next))
+  
 }
-
-case class Hit(val time: Long, val block: Block) extends Result {
-  def next = None
-}
-
-case class Miss(val time: Long, val block: Block, val next: Option[Result]) extends Result

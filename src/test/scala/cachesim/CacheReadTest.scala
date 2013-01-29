@@ -9,14 +9,13 @@ object CacheReadTest {
     
     val testData = Source.fromFile("src/main/resources/basic.trace")
     
-    val spec1 = new CacheSpec(8, 4, 4)
-    val decoder1 = new AddressDecoder(spec1)
+    val spec1 = new CacheSpec(2, 2, 2, 2, writeBack=false)
     
-    val cache = new WriteThroughCache(decoder1, None)
+    val cache = new CacheImpl(spec1, None)
     
     val testInputs = testData.getLines map MemOp.deserializeFromString
     
-    testInputs map { op => cache.read(op.memoryAddress) } foreach println
+    testInputs map { op => cache.perform(op) } foreach println
     
   }
   

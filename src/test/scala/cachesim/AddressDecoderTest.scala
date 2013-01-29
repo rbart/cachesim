@@ -8,7 +8,7 @@ object AddressDecoderTest {
   // a simple unit test for the address decoder
   def main(args: Array[String]): Unit = {
     
-    val spec1 = new CacheSpec(8, 8, 8)
+    val spec1 = new CacheSpec(2, 2, 2, 2, writeBack=false)
     val decoder1 = new AddressDecoder(spec1)
     
     val test1 = "0x7abcde11"
