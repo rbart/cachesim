@@ -18,13 +18,17 @@ class WriteThroughCache(val decoder: AddressDecoder, val nextCache: Option[Cache
     
     val cachedBlock = getCachedBlock(addr)
     
+    val decoderTagBits = decoder.tagBits(addr)
+    
     // if tags equal, hit, else miss
-    if (cachedBlock.tag.equals(decoder.tagBits(addr))) {
+    if (cachedBlock.valid && cachedBlock.tag.equals(decoderTagBits)) {
       Hit(-1, cachedBlock)
     } else {
+      cachedBlock.tag = decoderTagBits
+      cachedBlock.valid = true
       if (nextCache.isDefined) {
         val nextResult = nextCache.get.read(addr)
-        Miss(-2, nextResult.block, Some(nextResult))
+        Miss(-2, cachedBlock, Some(nextResult))
       } else {
         Miss(-3, new Block(decoder.tagBits(addr), true), None)
       }
