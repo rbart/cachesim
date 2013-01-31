@@ -11,4 +11,18 @@ class Result(
   
   def this(time: Long, block: Block, next: Result) = this(time, block, Some(next))
   
+  private def statString:String = {
+    val t = if (nextOpt.isDefined) "MISS" else "HIT"
+    
+    (Seq("%s:%d".format(t, time)) ++ nextOpt.map(_.statString)).mkString(" -> ")
+  }
+  
+  override def toString: String = {
+    
+    val t = if (nextOpt.isDefined) "MISS" else "HIT"
+    
+    "%s\t%s".format(block.addr.toLongArray().map(_.toHexString).mkString, statString)
+      
+  }
+  
 }

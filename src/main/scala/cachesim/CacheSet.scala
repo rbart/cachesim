@@ -38,6 +38,8 @@ class CacheSet(spec: CacheSpec, nextCache: CacheInterface) {
     
     blockMap.get(tag) match {
       case Some(block) => {
+        // set the block's usage timer for LRU purposes
+        block.use()
         // Return a hit containing this block
         new Result(spec.accessTime, block, None)
       }
@@ -60,6 +62,9 @@ class CacheSet(spec: CacheSpec, nextCache: CacheInterface) {
    * Returns optionally any evicted block. 
    */
   private def setBlock(addr: BitSet): (Block, Option[Result]) = {
+    
+    // if this addr is already in the cache, then we need to replace it instead of evicting:
+    blockMap.remove(spec.decoder.tagBits(addr))
     
     // if blockMap is larger than the number of ways,
     // then somebody has to go
@@ -87,7 +92,8 @@ class CacheSet(spec: CacheSpec, nextCache: CacheInterface) {
     if (blockMap.isEmpty) throw new IllegalStateException("evict() called on empty CacheSet, implementation error")
     
     // default implementation: evict the first block
-    val (victimTag, victimBlock) = blockMap.head
+    val victimTag = if (spec.lru) lruVictim else randomVictim 
+    val victimBlock = blockMap(victimTag)
     blockMap.remove(victimTag)
     
     // on write-back, write victim to the next cache and account for the time taken.
@@ -100,5 +106,16 @@ class CacheSet(spec: CacheSpec, nextCache: CacheInterface) {
     
     // neither hit nor miss actually
     return new Result(evictionTime, victimBlock, None)
+  }
+  
+  private val random = new scala.util.Random(1)
+  
+  private def randomVictim = {
+    
+    blockMap.keys.toSeq(random.nextInt(blockMap.size))
+  }
+  private def lruVictim = {
+    
+    blockMap.values.toSeq.sortBy(_.lastUse).head.tag
   }
 }
