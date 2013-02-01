@@ -17,8 +17,8 @@ class CacheSet(spec: CacheSpec, nextCache: CacheInterface) {
       val writeResult = nextCache.write(addr)
       // set it in our cache too.
       setBlock(addr) match {
-        case (block, Some(victim)) => new Result(spec.accessTime + victim.time + writeResult.time, block, writeResult)
-        case (block, None) => new Result(spec.accessTime + writeResult.time, block, writeResult)
+        case (block, Some(victim)) => new Result(spec.accessTime + victim.time + writeResult.time, block, false, writeResult)
+        case (block, None) => new Result(spec.accessTime + writeResult.time, block, false, writeResult)
       }
     }
     else {
@@ -41,15 +41,15 @@ class CacheSet(spec: CacheSpec, nextCache: CacheInterface) {
         // set the block's usage timer for LRU purposes
         block.use()
         // Return a hit containing this block
-        new Result(spec.accessTime, block, None)
+        new Result(spec.accessTime, block, false, None)
       }
       case None => {
         // call next cache in order to retrieve it
         val missedResult = nextCache.read(addr)
         // call setBlock to store it here. In case of eviction, account for any write-back time.
         setBlock(addr) match {
-          case (block, Some(victim)) => new Result(victim.time + spec.accessTime + missedResult.time, block, missedResult)
-          case (block, None) => new Result(spec.accessTime + missedResult.time, block, missedResult)
+          case (block, Some(victim)) => new Result(victim.time + spec.accessTime + missedResult.time, block, false, missedResult)
+          case (block, None) => new Result(spec.accessTime + missedResult.time, block, false, missedResult)
         }
       }
     }
@@ -105,7 +105,7 @@ class CacheSet(spec: CacheSpec, nextCache: CacheInterface) {
       else 0
     
     // neither hit nor miss actually
-    return new Result(evictionTime, victimBlock, None)
+    return new Result(evictionTime, victimBlock, false, None)
   }
   
   private val random = new scala.util.Random(1)

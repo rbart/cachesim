@@ -24,7 +24,7 @@ class MainMem(val spec: CacheSpec) extends CacheInterface {
   // memory, we need to fetch the whole block. So we need to know what the block size is here.
   def read(addr: BitSet): Result = {
     val block = new Block(valid = true, dirty = false, addr, spec.decoder)
-    new Result(accessTime, block, None)
+    new Result(accessTime, block, true, None)
   }
   
   def write(addr: BitSet): Result = read(addr)

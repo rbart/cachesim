@@ -14,7 +14,7 @@ class AggregateResult(
   
   def operations = hits + misses
   
-  def missRate = misses.toDouble / (hits.toDouble + misses.toDouble)
+  def missRate = misses.toDouble / operations.toDouble
   
   def cyclesPerOp = cycles.toDouble / operations.toDouble
   
@@ -33,13 +33,13 @@ class AggregateResult(
     } 
   }
   
-  def dataString: String = {
+  override def toString: String = {
     val fields: Seq[String] = Seq(
       name,
       missRate.formatted("%.3f"),
       cyclesPerOp.formatted("%.1f"),
-      cyclesPerHit.toString,
-      cyclesPerMiss.toString,
+      cyclesPerHit.formatted("%.1f"),
+      cyclesPerMiss.formatted("%.1f"),
       cycles.toString,
       operations.toString
     )

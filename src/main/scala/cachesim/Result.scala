@@ -5,11 +5,12 @@ import java.util.BitSet
 class Result(
   val time: Long,
   val block: Block,
+  val mainMem: Boolean, // indicates that the result came from main memory directly.
   val nextOpt: Option[Result]) {
   
   def hit = nextOpt.isEmpty
   
-  def this(time: Long, block: Block, next: Result) = this(time, block, Some(next))
+  def this(time: Long, block: Block, mainMem:Boolean, next: Result) = this(time, block, mainMem, Some(next))
   
   private def statString:String = {
     val t = if (nextOpt.isDefined) "MISS" else "HIT"
