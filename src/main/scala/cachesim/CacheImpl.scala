@@ -8,6 +8,8 @@ class CacheImpl(val spec: CacheSpec, val nextCache: CacheInterface) extends Cach
   
   private val cacheSetMap = new mutable.HashMap[BitSet, CacheSet]
   
+  def nextCacheOpt = Some(nextCache)
+  
   def decoder = spec.decoder
   
   def read(addr: BitSet): Result = {

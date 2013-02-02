@@ -9,7 +9,7 @@ object CacheEvictTest {
     
     val testData = Source.fromFile("src/main/resources/evict-test.trace")
     
-    val spec1 = new CacheSpec(2, 2, 2, 2, writeBack=false, lru=false)
+    val spec1 = new CacheSpec(2, 2, 2, 2, writeBack=false)
     
     println(spec1)
     

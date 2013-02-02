@@ -9,11 +9,11 @@ object CacheTwoLevelTest {
     
     val testData = Source.fromFile("src/main/resources/twolevel-test.trace")
     
-    val spec2 = new CacheSpec(3, 3, 3, 4, writeBack=false, lru=true)
+    val spec2 = new CacheSpec(3, 3, 3, 4, writeBack=false)
     
     val cache2 = new CacheImpl(spec2, new MainMem(spec2))
     
-    val spec1 = new CacheSpec(2, 2, 2, 2, writeBack=false, lru=true)
+    val spec1 = new CacheSpec(2, 2, 2, 2, writeBack=false)
     
     val cache1 = new CacheImpl(spec1, cache2)
     

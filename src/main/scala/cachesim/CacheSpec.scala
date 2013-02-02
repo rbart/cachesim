@@ -10,17 +10,18 @@ case class CacheSpec(
   val blockOffsetBits: Int,
   val byteOffsetBits: Int,
   val numWays: Int,
-  val writeBack: Boolean,
-  val lru: Boolean) {
+  val writeBack: Boolean) {
+  
+  def lru = numWays <= 8
   
   def accessTime = {
     val cacheSizeKB = cacheDataBytes.toDouble / 1024.0
     ceil(sqrt((cacheSizeKB / 8.0) * (numWays.toDouble / 2.0))).toLong
   }
     
-  private val cacheDataBytes = (pow(2, blockOffsetBits + byteOffsetBits + setBits) * numWays).toInt
+  val cacheDataBytes = (pow(2, blockOffsetBits + byteOffsetBits + setBits) * numWays).toInt
   
-  private val cacheOverheadBytes = {
+  val cacheOverheadBytes = {
     val numSets = pow(2, setBits)
     val numBlocks = numSets * numWays
     val tagBitsPerBlock = 48 - setBits - blockOffsetBits - byteOffsetBits
@@ -36,6 +37,10 @@ case class CacheSpec(
   }
   
   lazy val decoder = new AddressDecoder(this)
+  
+  def paramString: String = {
+    Seq(setBits, blockOffsetBits + byteOffsetBits, numWays, writeBack).mkString("\t")
+  }
   
   override def toString: String = {
     

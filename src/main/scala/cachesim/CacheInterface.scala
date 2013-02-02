@@ -4,6 +4,8 @@ import java.util.BitSet
 
 abstract class CacheInterface {
 
+  def nextCacheOpt: Option[CacheInterface]
+  
   def spec: CacheSpec
   
   def read(addr: BitSet): Result
@@ -17,6 +19,8 @@ abstract class CacheInterface {
 }
 
 class MainMem(val spec: CacheSpec) extends CacheInterface {
+  
+  def nextCacheOpt = None
   
   val accessTime = 100 + (10 * scala.math.pow(2, spec.blockOffsetBits + spec.byteOffsetBits).toInt)
   

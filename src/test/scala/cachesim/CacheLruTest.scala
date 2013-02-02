@@ -9,7 +9,7 @@ object CacheLruTest {
     
     val testData = Source.fromFile("src/main/resources/lru-test.trace")
     
-    val spec1 = new CacheSpec(2, 2, 2, 2, writeBack=false, lru=true)
+    val spec1 = new CacheSpec(2, 2, 2, 2, writeBack=false)
     
     println(spec1)
     

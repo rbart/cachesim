@@ -8,13 +8,13 @@ object CacheLargeTest {
     
     val testData = Source.fromFile("/scratch/cse548/bzip2.trace")
     
-    val spec3 = new CacheSpec(15, 0, 4, 8, writeBack=true, lru=true)
+    val spec3 = new CacheSpec(15, 0, 4, 8, writeBack=true)
     val cache3 = new CacheImpl(spec3, new MainMem(spec3))
     
-    val spec2 = new CacheSpec(12, 0, 4, 8, writeBack=true, lru=true)
+    val spec2 = new CacheSpec(12, 0, 4, 8, writeBack=true)
     val cache2 = new CacheImpl(spec2, cache3)
     
-    val spec1 = new CacheSpec(12, 0, 3, 2, writeBack=true, lru=true)
+    val spec1 = new CacheSpec(12, 0, 3, 2, writeBack=true)
     val cache1 = new CacheImpl(spec1, cache2)
     
     

@@ -9,7 +9,7 @@ object CacheBasicTest {
     
     val testData = Source.fromFile("src/main/resources/basic.trace")
     
-    val spec1 = new CacheSpec(2, 2, 2, 2, writeBack=false, lru=false)
+    val spec1 = new CacheSpec(2, 2, 2, 2, writeBack=false)
     
     println(spec1)
     
