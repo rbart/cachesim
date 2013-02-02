@@ -1,13 +1,17 @@
 package cachesim
 
-object ResultAggregator {
+class ResultAggregator(val cache: CacheInterface) {
 
-  def aggregate(results: Iterator[Result]): Seq[AggregateResult] = {
+  private val totalResult = new AggregateResult("Total")
   
-    var agResults = IndexedSeq.empty[AggregateResult]
-    
-    val totalResult = new AggregateResult("Total")
-    
+  private var agResults = IndexedSeq.empty[AggregateResult]
+  
+  def getResult: Seq[AggregateResult] = agResults 
+  
+  def runOps(ops: Iterator[MemOp]): Unit = aggregate(ops map cache.perform)
+  
+  private def aggregate(results: Iterator[Result]): Unit = {
+  
     results foreach { headResult =>
 
       // flatten

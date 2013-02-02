@@ -22,11 +22,13 @@ object CacheLargeTest {
     println(spec2)
     println(spec3)
     
-    val testInputs = testData.getLines map MemOp.deserializeFromString
+    val testInputs = testData.getLines take(500) map MemOp.deserializeFromString
     
-    val results = testInputs map { op => cache1.perform(op) }
+    val aggr = new ResultAggregator(cache1)
     
-    val agResults = ResultAggregator.aggregate(results)
+    aggr.runOps(testInputs)
+    
+    val agResults = aggr.getResult
     
     println(AggregateResult.columns)
     println(agResults.mkString("\t"))

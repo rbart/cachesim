@@ -82,7 +82,7 @@
         <configuration>
           <archive>
             <manifest>
-              <mainClass>cse573.mp2.DistanceCalculator</mainClass>
+              <mainClass>cachesim.Main</mainClass>
             </manifest>
           </archive>
         </configuration>

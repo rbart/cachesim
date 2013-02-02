@@ -12,7 +12,7 @@ object Main {
     
     val output = if (args.length > 1) new java.io.PrintStream(args(1)) else System.out
     
-    val numLevels = 2
+    val numLevels = 1
     val setBits = Seq(11, 12, 13, 14, 15)
     val assocs = Seq(1, 2, 4, 8, 16, 32)
     val blockBits = Seq(3, 4, 5, 6)
@@ -34,18 +34,22 @@ object Main {
     }
     
     println("Running %d different configurations...".format(allCacheSpecs.size))
-    val allCaches = allCacheSpecs map getCombinedCache
-    var numFinished = 0
-    allCaches.par.iterator foreach { cache =>
-      val inputSource = scala.io.Source.fromFile(inputFile)
-      val results = inputSource.getLines map MemOp.deserializeFromString map cache.perform
-      val agResult = ResultAggregator.aggregate(results)
-      val resultString = (Seq(agResult.head.cyclesPerOp.formatted("%.2f"), agResult.head.missRate.formatted("%.2f")) ++ getSpecs(cache).dropRight(1).map(_.paramString)).mkString("\t")
-      output.println(resultString)
-      numFinished += 1
-      if (numFinished % 100 == 0) System.err.println("Finished %d".format(numFinished))
-      inputSource.close()
-    }    
+    val allCaches = allCacheSpecs map getCombinedCache map { cache => new ResultAggregator(cache) }
+    var numOpsDone = 0
+    
+    scala.io.Source.fromFile(inputFile).getLines.map(MemOp.deserializeFromString).grouped(10000).foreach { packet =>
+      allCaches.par.foreach { cache =>
+        cache.runOps(packet.iterator)
+      }
+      numOpsDone += packet.size
+      if (numOpsDone % 1000000 == 0) System.err.println("Ops done: %d".format(numOpsDone))
+    }
+    
+    allCaches.foreach { cache =>
+      val agResult = cache.getResult
+      val resultStr = (Seq(agResult.head.cyclesPerOp.formatted("%.2f"), agResult.head.missRate.formatted("%.2f")) ++ getSpecs(cache.cache).dropRight(1).map(_.paramString)).mkString("\t")
+      output.println(resultStr)
+    }
   }
 
   def cartesianProduct[T](xss: List[List[T]]): List[List[T]] = xss match {
