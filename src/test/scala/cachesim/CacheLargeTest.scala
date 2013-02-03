@@ -11,18 +11,18 @@ object CacheLargeTest {
     val spec3 = new CacheSpec(15, 0, 4, 8, writeBack=true)
     val cache3 = new CacheImpl(spec3, new MainMem(spec3))
     
-    val spec2 = new CacheSpec(12, 0, 4, 8, writeBack=true)
-    val cache2 = new CacheImpl(spec2, cache3)
+    val spec2 = new CacheSpec(16, 0, 6, 1, writeBack=true)
+    val cache2 = new CacheImpl(spec2, new MainMem(spec2))
     
-    val spec1 = new CacheSpec(12, 0, 3, 2, writeBack=true)
+    val spec1 = new CacheSpec(13, 0, 3, 1, writeBack=true)
     val cache1 = new CacheImpl(spec1, cache2)
     
     
     println(spec1)
     println(spec2)
-    println(spec3)
+    //println(spec3)
     
-    val testInputs = testData.getLines take(500) map MemOp.deserializeFromString
+    val testInputs = testData.getLines map MemOp.deserializeFromString
     
     val aggr = new ResultAggregator(cache1)
     

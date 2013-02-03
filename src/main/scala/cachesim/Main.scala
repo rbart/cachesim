@@ -5,31 +5,50 @@ package cachesim
  */
 object Main {
 
+  private val KB = 1024
+  
+  private val MB = KB*KB
+  
+  def getCaches(setBits: Seq[Int], assocs: Seq[Int], blockBits: Seq[Int], writePolicies: Seq[Boolean]): List[CacheSpec] = {
+    val notList = for (setB <- setBits; assoc <- assocs; blockB <- blockBits; writeBack <- writePolicies) yield {
+      new CacheSpec(setB, 0, blockB, assoc, writeBack)
+    }
+    notList.toList
+  }
+  
   def main(args: Array[String]): Unit = {
-    
     
     val inputFile = args(0)
     
     val output = if (args.length > 1) new java.io.PrintStream(args(1)) else System.out
     
-    val numLevels = 1
-    val setBits = Seq(11, 12, 13, 14, 15)
-    val assocs = Seq(1, 2, 4, 8, 16, 32)
-    val blockBits = Seq(3, 4, 5, 6)
-    val writePolicies = Seq(true) //, false)
-    
-    val allIndividualCaches: List[CacheSpec] = {
-      val notList = for (setB <- setBits; assoc <- assocs; blockB <- blockBits; writeBack <- writePolicies) yield {
-        new CacheSpec(setB, 0, blockB, assoc, writeBack)
-      } 
-      notList.toList
-    }
+    val level1Specs = getCaches(
+      Seq(10, 11, 12, 13),
+      Seq(1, 2),
+      Seq(3),
+      Seq(true)
+    )
 
-    println(allIndividualCaches.size)
+    val level2Specs = getCaches(
+      Seq(13, 14, 15),
+      Seq(1, 2, 3, 4),
+      Seq(6),
+      Seq(true)
+    )
+    
+    val level3Specs = getCaches(
+      Seq(12, 13, 14, 15, 16),
+      Seq(1, 2, 4, 8, 16),
+      Seq(6),
+      Seq(true)
+    )
+    
+    println("L1s: %d".format(level1Specs.size))
+    println("L2s: %d".format(level2Specs.size))
+    println("L3s: %d".format(level3Specs.size))
     
     val allCacheSpecs: List[List[CacheSpec]] = {
-      val multiplied = List.fill(numLevels)(allIndividualCaches)
-      val perms = cartesianProduct(multiplied) 
+      val perms = cartesianProduct(List(level3Specs, level2Specs, level1Specs))
       perms filter filterCacheSpecs
     }
     
@@ -37,17 +56,22 @@ object Main {
     val allCaches = allCacheSpecs map getCombinedCache map { cache => new ResultAggregator(cache) }
     var numOpsDone = 0
     
-    scala.io.Source.fromFile(inputFile).getLines.map(MemOp.deserializeFromString).grouped(10000).foreach { packet =>
+    val inputSource = scala.io.Source.fromFile(inputFile)
+    val memOps = inputSource.getLines.map(MemOp.deserializeFromString).grouped(100000)
+    
+    memOps.foreach { packet =>
       allCaches.par.foreach { cache =>
         cache.runOps(packet.iterator)
       }
       numOpsDone += packet.size
-      if (numOpsDone % 1000000 == 0) System.err.println("Ops done: %d".format(numOpsDone))
+      System.err.println("Ops done: %d".format(numOpsDone)) 
     }
+    
+    inputSource.close()
     
     allCaches.foreach { cache =>
       val agResult = cache.getResult
-      val resultStr = (Seq(agResult.head.cyclesPerOp.formatted("%.2f"), agResult.head.missRate.formatted("%.2f")) ++ getSpecs(cache.cache).dropRight(1).map(_.paramString)).mkString("\t")
+      val resultStr = (Seq(agResult.head.cyclesPerOp.formatted("%.3f"), agResult.head.missRate.formatted("%.3f")) ++ getSpecs(cache.cache).dropRight(1).map(_.paramString)).mkString("\t")
       output.println(resultStr)
     }
   }
@@ -65,8 +89,8 @@ object Main {
     var lastDelay = Long.MaxValue
     var totalSize = 0
     for (spec <- cacheSpecs) {
-      if (spec.cacheDataBytes < 8192) return false // not smaller than 8KB
-      else if (spec.cacheDataBytes >= 7340032) return false // not bigger than 7MB
+      if (spec.cacheDataBytes < 4*KB) return false // not smaller than 8KB
+      else if (spec.cacheDataBytes >= 7*MB) return false // not bigger than 7MB
       else if (spec.cacheDataBytes >= lastSize) return false
       else if (spec.blockOffsetBits + spec.byteOffsetBits > lastBlocks) return false
       else if (spec.numWays > lastAssoc) return false
@@ -81,7 +105,7 @@ object Main {
         totalSize += spec.cacheDataBytes + spec.cacheOverheadBytes
       }
     }
-    if (totalSize > 8388608) return false
+    if (totalSize > 8*MB) return false
     
     true
   }
