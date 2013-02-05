@@ -23,22 +23,22 @@ object Main {
     val output = if (args.length > 1) new java.io.PrintStream(args(1)) else System.out
     
     val level1Specs = getCaches(
-      Seq(10, 11, 12, 13),
-      Seq(1, 2),
+      Seq(11),
+      Seq(1),
       Seq(3),
       Seq(true)
     )
 
     val level2Specs = getCaches(
-      Seq(13, 14, 15),
-      Seq(1, 2, 3, 4),
-      Seq(6),
+      Seq(10, 11, 12, 13),
+      Seq(1),
+      Seq(3, 4, 5, 6),
       Seq(true)
-    )
+    ).filter(_.cacheDataBytes <= 512*MB)
     
     val level3Specs = getCaches(
-      Seq(12, 13, 14, 15, 16),
-      Seq(1, 2, 4, 8, 16),
+      Seq(15, 16),
+      Seq(1, 2),
       Seq(6),
       Seq(true)
     )
@@ -48,7 +48,7 @@ object Main {
     println("L3s: %d".format(level3Specs.size))
     
     val allCacheSpecs: List[List[CacheSpec]] = {
-      val perms = cartesianProduct(List(level3Specs, level2Specs, level1Specs))
+      val perms = cartesianProduct(List(level3Specs, level2Specs))
       perms filter filterCacheSpecs
     }
     
@@ -57,7 +57,9 @@ object Main {
     var numOpsDone = 0
     
     val inputSource = scala.io.Source.fromFile(inputFile)
-    val memOps = inputSource.getLines.map(MemOp.deserializeFromString).grouped(100000)
+    val memOps = inputSource.getLines.grouped(1000000).map({ largePack =>
+      largePack.grouped(10000).toSeq.par.map(_.map(MemOp.deserializeFromString)).flatten
+    })
     
     memOps.foreach { packet =>
       allCaches.par.foreach { cache =>
@@ -89,7 +91,7 @@ object Main {
     var lastDelay = Long.MaxValue
     var totalSize = 0
     for (spec <- cacheSpecs) {
-      if (spec.cacheDataBytes < 4*KB) return false // not smaller than 8KB
+      if (spec.cacheDataBytes < 8*KB) return false // not smaller than 8KB
       else if (spec.cacheDataBytes >= 7*MB) return false // not bigger than 7MB
       else if (spec.cacheDataBytes >= lastSize) return false
       else if (spec.blockOffsetBits + spec.byteOffsetBits > lastBlocks) return false
